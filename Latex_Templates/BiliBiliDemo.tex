@@ -1,0 +1,236 @@
+\documentclass[conference]{IEEEtran}
+%\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+%\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{subfigure}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{makecell}
+\usepackage{stfloats}
+\usepackage{gensymb}
+\usepackage{multirow}
+\usepackage{soul, color}
+\newcommand{\hlg}[2][green]{{\sethlcolor{#1}\hl{#2}}} 
+\newcommand{\hlp}[2][pink]{{\sethlcolor{#1}\hl{#2}}}
+% \usepackage[UTF8]{ctex}
+\def\hrulefill{\leavevmode\leaders\hrule height 0.8pt\hfill\kern0pt}
+\makeatletter
+\def\rulefill{\leavevmode\leaders\hrule depth -3pt height 4pt\hfill\kern0pt}
+\makeatother
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\columnsep 0.255in
+\begin{document}
+
+\title{BiliBili Demo}
+
+\author
+{\IEEEauthorblockN{Dapang$^1$, Xiaopang$^{*2}$, Zhongpang$^1$}
+	\IEEEauthorblockA{
+		\textit{$^1$BiliBili}\\
+		\textit{$^2$LibiLibi}\\
+		\text{bilibili@edu.cn}
+		}}
+\maketitle
+
+
+\begin{abstract}
+This is abstract.
+\end{abstract}
+
+\begin{IEEEkeywords}
+BiliBili, powerful, template, latex, sublime.
+
+\end{IEEEkeywords}
+
+\section{Introduction}
+Wireless power transfer (WPT) through magnetic coupling has a profound impact on both consumer electronics and industrial applications~\cite{jang2003contactless}. Compared with traditional plug-in systems, WPT systems are free of cables, providing users with a more convenient, safe and efficient experience~\cite{liu2020high}. Currently, most of commercialized WPT systems operate in kHz band, such as at several hundreds kHz~\cite{li20163}. It is mainly because this frequency band provides a richer selection of power electronics components. However, the kHz operation requires large-size coupling coils and ferrite to achieve enough mutual inductance.
+\begin{figure*}[hb]
+	\hrulefill
+	\begin{align}
+	\begin{split}
+&a=\sqrt{\left( R_{\rm loadA}+R_{\rm loadB} \right) ^2+\left( X_{\rm loadA}-X_{\rm loadB} \right) ^2+4R_{\rm loadA}R_{\rm loadB}\tan ^2\theta _{\rm ref}}\cdot \sqrt{\left( R_{\rm loadA}-R_{\rm loadB} \right) ^2+\left( X_{\rm loadA}-X_{\rm loadB} \right) ^2}
+\\
+&b=R_{\rm loadB}^{2}+R_{\rm loadA}^{2}\left( 1+2\tan ^2\theta _{\rm ref} \right) +\left( X_{\rm loadA}-X_{\rm loadB} \right) ^2+2R_{\rm loadA}\left[ R_{\rm loadB}\left( 1+\tan ^2\theta _{\rm ref} \right) +\tan \theta _{\rm ref}\left( X_{\rm loadB}-X_{\rm loadA} \right) \right] 
+	\end{split}
+	\label{int}
+	\end{align}
+\end{figure*}
+\begin{equation}
+\begin{cases}
+X_{\Pi 1}=X_{T1}+X_{T2}+\frac{X_{T1}X_{T2}}{X_{T3}},\\
+X_{\Pi 2}=X_{T2}+X_{T3}+\frac{X_{T2}X_{T3}}{X_{T1}},\\
+X_{\Pi 3}=X_{T3}+X_{T1}+\frac{X_{T3}X_{T1}}{X_{T2}}.\\
+\end{cases}
+\label{T2Pi}
+\end{equation}
+
+\begin{figure}[!h]
+	\centering
+	\subfigure[]{\includegraphics[height=1.5 in]{Fig/socket1.eps}}
+	\hspace{0 pt}
+	\subfigure[]{\includegraphics[height=1.5 in]{Fig/socket.eps}}
+	\caption{Caption. (a) Subcaption1. (b) Subcaption2.}
+	\label{fig:socketNew}
+\end{figure}
+
+Fig.~\\rm ref{fig:socketNew} shows...
+ 
+\section{A Novel Method to Design Impedance Matching Networks for MHz WPT Systems}
+\label{novel}
+Thus the transformed impedance, i.e., the input impedance of the IMN, can be calculated as: 
+
+
+
+\begin{equation}
+\begin{split}
+Z_{\mathrm{net}}&=R_{\mathrm{net}}+\mathrm{j}X_{\mathrm{net}}=Z_{\mathrm{T}1}+\left( Z_{\mathrm{load}}+Z_{\mathrm{T}2} \right) //Z_{\mathrm{T}3}
+\\
+&=\mathrm{j}X_{\mathrm{T}1}+\frac{\int_0^{\infty}{\mathrm{j}X_{\mathrm{T}3}\left( R_{\mathrm{load}}+\mathrm{j}X_{\mathrm{load}}+\mathrm{j}X_{\mathrm{T}2} \right)}}{R_{\mathrm{load}}}
+\end{split}
+\label{eq:Znet}
+\end{equation}
+
+\section{Parameter Design}
+\label{par}
+\subsection{System Configuration}
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=3in]{Fig/system.eps}
+	\caption{System configuration of proposed multi-receiver MHz WPT system.}
+	\label{fig:system}
+\end{figure}
+
+\begin{figure*}[!h]
+	\centering
+	\subfigure[]{\includegraphics[height=2 in]{Fig/solenoidcoil.eps}}
+	\hspace{10 pt}
+	\subfigure[]{\includegraphics[height=2 in]{Fig/spiralcoil.eps}}
+	\caption{Coil shapes. (a) Solenoid. (b) Spiral.}
+	\label{fig:coilshape}
+\end{figure*}
+
+Fig.~\\rm ref{fig:system} illustrates configuration of the proposed multi-receiver MHz WPT system, which is composed of a PA, an IMN of T-network, a transmitting (Tx) coil and several receiving (Rx) coils connected with corresponding rectifiers. In this system, Class E typology is applied in both the PA and the rectifier, due to its zero voltage switching (ZVS) and zero voltage derivative switching (ZVDS) characteristics. In the figure, $M_1$$\sim$$M_n$ are the mutual inductance between the Tx coil and different Rx coils, with t\texttt{}he cross coupling between the Rx coils ignored. $L_{tx}$ is  inductance of the Tx coil and $L_{rx1}$$\sim$$L_{rxn}$ are the inductances of Rx coils. Their parasitic resistors and compensation capacitors are also shown in the figure. \hl{sys} \hlg{sys} \hlp{sys}
+
+
+Table~\\rm ref{tbl:tar}
+
+\begin{table}
+	\caption{Target setting and calculated parameters of the IMN}
+	\centering
+	\begin{tabular}{cc}
+		\Xhline{1.2pt}
+		\multicolumn{2}{c}{Original Impedances} 
+		\\ \hline
+		$Z_{\rm loadA}$ ($Z_{coilA}$)&27+0j $\Omega$
+		\\
+		$Z_{\rm loadB}$ ($Z_{coilB}$)&9+0j $\Omega$
+		\\
+		\Xhline{1.2pt}
+		\multicolumn{2}{c}{Target Setting} 
+		\\ \hline
+		$Z_{\rm ref}$&14.7+12.3j $\Omega$
+		\\
+		$\theta_{\rm ref}$&-88$\degree$
+		\\ \Xhline{1.2pt}
+		\multicolumn{2}{c}{Calculated T-net}
+		\\ \hline
+		$Z_{T1}$&26.7j $\Omega$
+		\\
+		$Z_{T1}$&7j $\Omega$
+		\\
+		$Z_{T1}$&-23.4j $\Omega$
+		\\ \Xhline{1.2pt}
+	\end{tabular}
+	\label{tbl:tar}
+\end{table}
+
+\section{Hybrid Coupling Coils}
+\label{hybrid}
+
+Based on the above factors and the preliminary simulations, the hybrid coupler has the following 2 advantages:
+
+\begin{itemize}
+	\item Higher receiver capacity;
+	\item Suitable for those receivers with special shapes.
+\end{itemize}
+\cite{ahn2015wireless}
+
+\section{Experimental Verification}
+\label{exp}
+
+\begin{table}
+	\caption{Parameters of the experimental system}
+	\centering
+	\begin{tabular}{ccc}
+		\Xhline{1.2pt}
+		Parameters&Value &
+		\\ \hline
+		$f$&6.78 MHz&
+		\\
+		$L_f$&10 uH&
+		\\
+		$L_0$&
+		~~~~~\multirow{2}*{
+		$
+		\left. \begin{array}{r}
+		2.17~\mathrm{uH}\\
+		357~\mathrm{pF}\\
+		\end{array} \right\} 
+		\Longrightarrow 
+		$}
+		
+		 & ~~~\multirow{2}{*}{$Z_{T1}=$ 26.7j $\Omega$}
+		\\
+		$C_0^*$& &
+		\\
+		$C_s$&287 pF&
+		\\
+		$L_{tx}$&
+		
+		~~~~~\multirow{2}*{
+			$
+			\left. \begin{array}{r}
+			6.65~\mathrm{uH}\\
+			85~\mathrm{pF}\\
+			\end{array} \right\} 
+			\Longrightarrow 
+			$}
+		
+		&\multirow{2}*{			 
+			$Z_{T2}=$ 7j $\Omega$ }
+		\\
+		$C_{tx}^*$&&
+		\\
+		$r_{tx}$&1.1 $\Omega$&
+		\\
+		$C_{T3}$&~~~~~~~~1005 pF ~~~~$\Longrightarrow$&$~~~~~Z_{T3}=$ -23.4j $\Omega$
+		\\
+		$Z_{\rm ref}$&9$\sim$27 $\Omega$&
+		\\
+		$M_1\sim M_3$&0.45 uH&
+		\\
+		$L_{r}$&4.7 uH&
+		\\
+		$C_{r1}\sim C_{r3}$&540 pF&
+		\\
+		$C_L$&10 uF&
+		\\
+		$R_{L1}\sim R_{L3}$&40 $\Omega$&
+		\\ \Xhline{1.2pt}
+	\end{tabular}
+	\label{tbl:par}
+\end{table}
+
+\section{Conclusions}
+\label{con}
+A multi-receiver MHz WPT system with hybrid coupler is proposed. 
+
+\bibliographystyle{IEEEtran}
+\bibliography{bibRef}
+
+\end{document}
+
