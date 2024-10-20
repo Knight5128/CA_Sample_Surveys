@@ -1,0 +1,6 @@
+#Latex environment setup too troublesome, here we'll use Rmd for final report
+
+
+```{r setup}
+
+```
