@@ -15,9 +15,6 @@ output:
 
 
 
-
-
-
-```{r setup}
+```{r packages, include=FALSE}
 
 ```
