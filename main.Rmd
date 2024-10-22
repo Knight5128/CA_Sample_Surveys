@@ -9,6 +9,7 @@ output:
     df_print: paged
   pdf_document:
     toc: true
+    latex_engine: xlatex
 ---
 
 #Latex environment setup too troublesome, here we'll use Rmd for final report
