@@ -1,5 +1,6 @@
 ---
-title: "TBD"
+title: "Comparative Analysis of US Personal Income Across Presidential Terms: A Sample Survey Study"
+author: "STAT344 Group <groupname>"
 output:
   html_notebook:
     toc: true
@@ -12,9 +13,62 @@ output:
     latex_engine: xlatex
 ---
 
-#Latex environment setup too troublesome, here we'll use Rmd for final report
-
 
 ```{r packages, include=FALSE}
-1
+library(ggplot2)
 ```
+
+
+# Project Overview（需要修改完善）
+This study aims to conduct an objective analysis of economic well-being among **US citizens** by comparing personal <定语>income levels across different presidential administrations, specifically focusing on the Trump (2016-2020) and Biden (2021-2022) presidencies. Through systematic sampling and statistical analysis of IPUMS USA microdata, we seek to evaluate whether there are significant differences in citizen economic outcomes(i.e. change in personal <定语> income) between these administrative periods.
+
+# Data Source
+The sampling population is derived from The Integrated Public Use Microdata Series (IPUMS USA), focusing on three pivotal years:
+**2016**: Pre-Trump presidency baseline
+**2020**: End of Trump's term
+**2022**: Mid-term of Biden's presidency
+
+# Methodology Justification (可以放在最后总结部分)
+While our population data from IPUMS USA represents a sample of the total US population, we consider this approach methodologically sound for several reasons:
+IPUMS USA employs scientifically rigorous sampling methods that ensure representativeness of the US population
+The large sample size and sophisticated sampling design of IPUMS data provides sufficient statistical power
+The data undergoes thorough quality control and harmonization processes
+The sampling weights provided by IPUMS allow for appropriate population-level inference
+This approach is consistent with common practice in social science research using complex survey data
+
+# Research Objectives（需要修改完善）
+## Primary Objective:
+To assess whether there are statistically significant differences in household income levels between the Trump and Biden administrations
+## Secondary Objectives:
+To analyze income trends across different demographic groups
+To control for external economic factors that might influence income levels
+To examine the relationship between policy changes and income variations
+
+
+# Variables of Interest（需要修改完善）
+Primary Variable:
+Household income (adjusted for inflation)
+2. Control Variables:
+Age
+Education level
+Geographic region
+Occupation
+Industry sector
+Race/ethnicity
+Gender
+Urban/rural classification
+Sampling Design
+[To be completed based on your specific sampling methodology]
+
+
+
+
+# Limitations and Considerations（可以放在最后总结部分）（需要扩充）
+Economic lag effects from policy implementation
+Impact of COVID-19 pandemic on 2020-2022 data
+External global economic factors
+Regional economic variations
+Structural changes in the economy
+Expected Outcomes
+
+
