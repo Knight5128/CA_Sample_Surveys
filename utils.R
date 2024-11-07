@@ -159,9 +159,18 @@ str_prop_sampling_est_mean_vanilla <- function(data, tarv, n, strata_var) {
   # Sample from each stratum
   STR.sample <- data.frame()
   for (i in seq_along(strata_names)) {
-    row.ids <- which(data[[strata_var]] == strata_names[i])
-    sample.ids <- sample(row.ids, size = n_hs[i], replace = FALSE)
-    STR.sample <- rbind(STR.sample, data[sample.ids,])
+    stratum_data <- if(strata_var == "AGE_GROUP") {
+      data[data[[strata_var]] == strata_names[i], ]
+    } else {
+      data[data[[strata_var]] == as.integer(strata_names[i]), ]
+    }
+    
+    # 从当前层中随机抽样
+    if (nrow(stratum_data) > 0) {  # 确保该层有数据
+      sample_indices <- sample.int(nrow(stratum_data), size = n_hs[i], replace = FALSE)
+      stratum_sample <- stratum_data[sample_indices, ]
+      STR.sample <- rbind(STR.sample, stratum_sample)
+    }
   }
 
   # Calculate estimate for each stratum
@@ -212,9 +221,18 @@ str_prop_sampling_est_prop_vanilla <- function(data, tarv, thres, n, strata_var)
   # Sample from each stratum
   STR.sample <- data.frame()
   for (i in seq_along(strata_names)) {
-    row.ids <- which(data[[strata_var]] == strata_names[i])
-    sample.ids <- sample(row.ids, size = n_hs[i], replace = FALSE)
-    STR.sample <- rbind(STR.sample, data[sample.ids,])
+    stratum_data <- if(strata_var == "AGE_GROUP") {
+      data[data[[strata_var]] == strata_names[i], ]
+    } else {
+      data[data[[strata_var]] == as.integer(strata_names[i]), ]
+    }
+    
+    # 从当前层中随机抽样
+    if (nrow(stratum_data) > 0) {  # 确保该层有数据
+      sample_indices <- sample.int(nrow(stratum_data), size = n_hs[i], replace = FALSE)
+      stratum_sample <- stratum_data[sample_indices, ]
+      STR.sample <- rbind(STR.sample, stratum_sample)
+    }
   }
 
   # Calculate proportion estimate for each stratum
@@ -739,7 +757,7 @@ str_opt_sampling <- function(data, tarv_1, tarv_2, thres, n, strata_var,
 
 
 
-}
+
 
 
 
