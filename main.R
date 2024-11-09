@@ -20,10 +20,6 @@ library(ipumsr)
 # 看如何将这两张图直接加入到报告中
 
 
-
-
-
-
 ####################################################################################
 #——————————————————————————————Research Description————————————————————————————————#
 ####################################################################################
@@ -381,3 +377,4 @@ perf_table = create_performance_table(big_results)
 perf_table
 
 # And we can see that... (see main report for further explanation)
+

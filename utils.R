@@ -19,6 +19,20 @@ library(kableExtra)
 # 4. Visualization functions
 # 5. Other sampling functions
 
+
+####################################################################################
+#———————————————————————————————File Description———————————————————————————————————#
+####################################################################################
+
+# This is a file containing necessary code snippets & sampling functions & simulation functions for the project
+# The functions are designed to be used in the main.R file under the same directory
+# The file is structured as follows:
+# 1. Snippet functions
+# 2. Sampling functions
+# 3. Simulation functions
+# 4. Visualization functions
+# 5. Other sampling functions
+
 ####################################################################################
 #——————————————————————————————————————Basic———————————————————————————————————————#
 ####################################################################################
@@ -258,6 +272,7 @@ str_prop_sampling_est_prop_vanilla <- function(data, tarv, thres, n, strata_var)
     }
   }
 
+
   # Calculate proportion estimate for each stratum
   tarv.bar.hs <- tapply(STR.sample[[tarv]], STR.sample[[strata_var]], 
                         calculate_proportion, threshold = thres)
@@ -299,6 +314,7 @@ compare_sampling_methods <- function(data, tarv_1, tarv_2, thres, n, strata_vars
     install.packages("progress")
     library(progress)
   }
+
   library(haven)
   
   # haven_labelled --> double
@@ -334,6 +350,7 @@ compare_sampling_methods <- function(data, tarv_1, tarv_2, thres, n, strata_vars
           ci_upper = numeric(n_simulations)
         )
       ),
+
       # Target variable 2: proportion above threshold
       prop_estimates = list(
         srs_vanilla = data.frame(
@@ -351,7 +368,7 @@ compare_sampling_methods <- function(data, tarv_1, tarv_2, thres, n, strata_vars
       )
     )
   }
-  
+
   # setup progress bar
   pb <- progress_bar$new(
     format = paste0("Year ", year, " - Simulation progress [:bar] :percent eta: :eta"),
@@ -359,7 +376,7 @@ compare_sampling_methods <- function(data, tarv_1, tarv_2, thres, n, strata_vars
     clear = FALSE,
     width = 80
   )
-  
+
   # run simulations
   for(i in 1:n_simulations) {
     # SRS only sample once in each iteration
@@ -367,6 +384,7 @@ compare_sampling_methods <- function(data, tarv_1, tarv_2, thres, n, strata_vars
     srs_ratio_mean <- srs_sampling_est_mean_ratio(data, tarv_1, "UHRSWORK", n)
     srs_vanilla_prop <- srs_sampling_est_prop_vanilla(data, tarv_2, thres, n)
     
+
     # Stratified sampling
     for(strata_var in strata_vars) {
       # estimation
@@ -392,6 +410,7 @@ compare_sampling_methods <- function(data, tarv_1, tarv_2, thres, n, strata_vars
         str_prop_mean$ci
       )
       
+
       # store results for proportion estimates
       results[[strata_var]]$prop_estimates$srs_vanilla[i,] <- c(
         srs_vanilla_prop$estimate,
@@ -406,6 +425,7 @@ compare_sampling_methods <- function(data, tarv_1, tarv_2, thres, n, strata_vars
       )
     }
     
+
     # update progress bar
     pb$tick()
   }
@@ -418,6 +438,7 @@ compare_sampling_methods <- function(data, tarv_1, tarv_2, thres, n, strata_vars
       prop_estimates = list()
     )
     
+
     # performance metric for mean estimates
     for(method in c("srs_vanilla", "srs_ratio", "str_prop")) {
       performance[[strata_var]]$mean_estimates[[method]] <- list(
@@ -433,6 +454,7 @@ compare_sampling_methods <- function(data, tarv_1, tarv_2, thres, n, strata_vars
       )
     }
     
+
     # performance metric for proportion estimates
     for(method in c("srs_vanilla", "str_prop")) {
       performance[[strata_var]]$prop_estimates[[method]] <- list(
@@ -449,6 +471,7 @@ compare_sampling_methods <- function(data, tarv_1, tarv_2, thres, n, strata_vars
     }
   }
   
+
   # yield results
   return(list(
     true_values = list(
@@ -572,7 +595,7 @@ compare_yearly_performance <- function(yearly_results) {
     
     year_comparisons$proportion_estimates <- year_comparisons$proportion_estimates %>%
       filter((method != "SRS-Vanilla" & method != "SRS-Ratio") | strata_var == "STATEICP")
-    
+
     # add year column
     year_comparisons$mean_estimates$year <- year
     year_comparisons$proportion_estimates$year <- year
@@ -650,6 +673,7 @@ plot_yearly_performance <- function(yearly_results) {
                aes(yintercept = true_value),
                linetype = "dashed",
                color = "red") +
+
     # splpit large plot into small ones
     facet_grid(estimate_type ~ year, scales = "free_y") +
     # set theme
@@ -661,6 +685,7 @@ plot_yearly_performance <- function(yearly_results) {
       legend.text = element_text(size = 8),
       strip.text = element_text(size = 12)
     ) +
+
     # set labels
     labs(
       x = "Estimation Method",
