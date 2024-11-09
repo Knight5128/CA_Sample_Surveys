@@ -1,6 +1,23 @@
 library(dplyr)
 library(stats)
 library(ggplot2)
+library(haven)
+library(knitr)
+library(kableExtra)
+
+
+####################################################################################
+#———————————————————————————————File Description———————————————————————————————————#
+####################################################################################
+
+# This is a file containing necessary code snippets & sampling functions & simulation functions for the project
+# The functions are designed to be used in the main.R file under the same directory
+# The file is structured as follows:
+# 1. Snippet functions
+# 2. Sampling functions
+# 3. Simulation functions
+# 4. Visualization functions
+# 5. Other sampling functions
 
 
 ####################################################################################
@@ -185,8 +202,8 @@ str_prop_sampling_est_mean_vanilla <- function(data, tarv, n, strata_var) {
       data[data[[strata_var]] == as.integer(strata_names[i]), ]
     }
     
-    # 从当前层中随机抽样
-    if (nrow(stratum_data) > 0) {  # 确保该层有数据
+    # Sample from strarum i
+    if (nrow(stratum_data) > 0) {  # make sure this stratum have data
       sample_indices <- sample.int(nrow(stratum_data), size = n_hs[i], replace = FALSE)
       stratum_sample <- stratum_data[sample_indices, ]
       STR.sample <- rbind(STR.sample, stratum_sample)
@@ -247,8 +264,8 @@ str_prop_sampling_est_prop_vanilla <- function(data, tarv, thres, n, strata_var)
       data[data[[strata_var]] == as.integer(strata_names[i]), ]
     }
     
-    # 从当前层中随机抽样
-    if (nrow(stratum_data) > 0) {  # 确保该层有数据
+    # sample from strarum i
+    if (nrow(stratum_data) > 0) {  # make sure this stratum have data
       sample_indices <- sample.int(nrow(stratum_data), size = n_hs[i], replace = FALSE)
       stratum_sample <- stratum_data[sample_indices, ]
       STR.sample <- rbind(STR.sample, stratum_sample)
@@ -292,21 +309,27 @@ str_prop_sampling_est_prop_vanilla <- function(data, tarv, thres, n, strata_var)
 # Simulating different sampling & estimation methods
 # + evaluating performance across different sampling methods & strata variables used
 compare_sampling_methods <- function(data, tarv_1, tarv_2, thres, n, strata_vars, n_simulations = 1000) {
-  # 加载progress包
+
   if (!require("progress")) {
     install.packages("progress")
     library(progress)
   }
+
+  library(haven)
   
-  # 计算总体参数真值
+  # haven_labelled --> double
+  data <- data %>%
+    mutate(across(where(is.labelled), ~as.numeric(zap_labels(.))))
+  
+  # calculate true mean and proportion
   true_mean <- mean(data[[tarv_1]])
   true_prop <- mean(data[[tarv_2]] > thres)
   
-  # 为每个分层变量初始化结果存储
+  # prepare results storage
   results <- list()
   for(strata_var in strata_vars) {
     results[[strata_var]] <- list(
-      # 目标变量1: 均值估计结果
+      # Target variable 1: mean income
       mean_estimates = list(
         srs_vanilla = data.frame(
           estimate = numeric(n_simulations),
@@ -327,7 +350,8 @@ compare_sampling_methods <- function(data, tarv_1, tarv_2, thres, n, strata_vars
           ci_upper = numeric(n_simulations)
         )
       ),
-      # 目标变量2: 比例估计结果
+
+      # Target variable 2: proportion above threshold
       prop_estimates = list(
         srs_vanilla = data.frame(
           estimate = numeric(n_simulations),
@@ -344,29 +368,30 @@ compare_sampling_methods <- function(data, tarv_1, tarv_2, thres, n, strata_vars
       )
     )
   }
-  
-  # 创建进度条
+
+  # setup progress bar
   pb <- progress_bar$new(
     format = paste0("Year ", year, " - Simulation progress [:bar] :percent eta: :eta"),
     total = n_simulations,
     clear = FALSE,
     width = 80
   )
-  
-  # 运行模拟
+
+  # run simulations
   for(i in 1:n_simulations) {
-    # SRS方法只需要运行一次（与分层变量无关）
+    # SRS only sample once in each iteration
     srs_vanilla_mean <- srs_sampling_est_mean_vanilla(data, tarv_1, n)
     srs_ratio_mean <- srs_sampling_est_mean_ratio(data, tarv_1, "UHRSWORK", n)
     srs_vanilla_prop <- srs_sampling_est_prop_vanilla(data, tarv_2, thres, n)
     
-    # 对每个分层变量进行分层抽样
+
+    # Stratified sampling
     for(strata_var in strata_vars) {
-      # 分层抽样估计
+      # estimation
       str_prop_mean <- str_prop_sampling_est_mean_vanilla(data, tarv_1, n, strata_var)
       str_prop_prop <- str_prop_sampling_est_prop_vanilla(data, tarv_2, thres, n, strata_var)
       
-      # 存储均值估计结果
+      # store results for mean estimates
       results[[strata_var]]$mean_estimates$srs_vanilla[i,] <- c(
         srs_vanilla_mean$estimate,
         srs_vanilla_mean$se,
@@ -385,7 +410,8 @@ compare_sampling_methods <- function(data, tarv_1, tarv_2, thres, n, strata_vars
         str_prop_mean$ci
       )
       
-      # 存储比例估计结果
+
+      # store results for proportion estimates
       results[[strata_var]]$prop_estimates$srs_vanilla[i,] <- c(
         srs_vanilla_prop$estimate,
         srs_vanilla_prop$se,
@@ -399,11 +425,12 @@ compare_sampling_methods <- function(data, tarv_1, tarv_2, thres, n, strata_vars
       )
     }
     
-    # 更新进度条
+
+    # update progress bar
     pb$tick()
   }
   
-  # 计算每个分层变量的性能指标
+  # performance for each strata variable
   performance <- list()
   for(strata_var in strata_vars) {
     performance[[strata_var]] <- list(
@@ -411,7 +438,8 @@ compare_sampling_methods <- function(data, tarv_1, tarv_2, thres, n, strata_vars
       prop_estimates = list()
     )
     
-    # 均值估计的性能指标
+
+    # performance metric for mean estimates
     for(method in c("srs_vanilla", "srs_ratio", "str_prop")) {
       performance[[strata_var]]$mean_estimates[[method]] <- list(
         estimates = results[[strata_var]]$mean_estimates[[method]]$estimate,
@@ -426,7 +454,8 @@ compare_sampling_methods <- function(data, tarv_1, tarv_2, thres, n, strata_vars
       )
     }
     
-    # 比例估计的性能指标
+
+    # performance metric for proportion estimates
     for(method in c("srs_vanilla", "str_prop")) {
       performance[[strata_var]]$prop_estimates[[method]] <- list(
         estimates = results[[strata_var]]$prop_estimates[[method]]$estimate,
@@ -442,7 +471,8 @@ compare_sampling_methods <- function(data, tarv_1, tarv_2, thres, n, strata_vars
     }
   }
   
-  # 返回结果
+
+  # yield results
   return(list(
     true_values = list(
       mean = true_mean,
@@ -455,19 +485,17 @@ compare_sampling_methods <- function(data, tarv_1, tarv_2, thres, n, strata_vars
 
 
 ############################################################################# Function 3.2
-# 构建分层变量性能比较表格
 compare_strata_performance <- function(performance_results) {
-  # 初始化结果数据框
+  # initialize data frames
   mean_comparisons <- data.frame()
   prop_comparisons <- data.frame()
   
-  # 遍历每个分层变量
+  # iterate each strata variable
   for(strata_var in names(performance_results)) {
-    # 均值估计比较
+    # comparison for mean estimates
     mean_perf <- data.frame(
       strata_var = strata_var,
       method = c("SRS-Vanilla", "SRS-Ratio", "Stratified"),
-      # 使用均值而不是原始向量
       estimate = c(
         mean(performance_results[[strata_var]]$mean_estimates$srs_vanilla$estimates),
         mean(performance_results[[strata_var]]$mean_estimates$srs_ratio$estimates),
@@ -506,11 +534,10 @@ compare_strata_performance <- function(performance_results) {
     )
     mean_comparisons <- rbind(mean_comparisons, mean_perf)
     
-    # 比例估计比较
+    # comparison for proportion estimates
     prop_perf <- data.frame(
       strata_var = strata_var,
       method = c("SRS-Vanilla", "Stratified"),
-      # 使用均值而不是原始向量
       estimate = c(
         mean(performance_results[[strata_var]]$prop_estimates$srs_vanilla$estimates),
         mean(performance_results[[strata_var]]$prop_estimates$str_prop$estimates)
@@ -551,29 +578,29 @@ compare_strata_performance <- function(performance_results) {
 
 
 ############################################################################# Function 3.3
-# 首先创建一个函数来整合多年的结果
+# integrate simulation results across multiple years
 compare_yearly_performance <- function(yearly_results) {
-  # 初始化结果数据框
+  # initialize data frames
   all_years_mean <- data.frame()
   all_years_prop <- data.frame()
   
-  # 遍历每一年
+  # iterate each year
   for(year in names(yearly_results)) {
-    # 获取当年的性能比较结果
+    # get performance comparisons for each year
     year_comparisons <- compare_strata_performance(yearly_results[[year]]$performance)
     
-    # 对于SRS-Vanilla和SRS-Ratio方法,只保留第一个分层变量的结果
+    # for SRS-Vanilla, SRS-Ratio: only keep result for the 1st strata variable
     year_comparisons$mean_estimates <- year_comparisons$mean_estimates %>%
       filter((method != "SRS-Vanilla" & method != "SRS-Ratio") | strata_var == "STATEICP")
     
     year_comparisons$proportion_estimates <- year_comparisons$proportion_estimates %>%
       filter((method != "SRS-Vanilla" & method != "SRS-Ratio") | strata_var == "STATEICP")
-    
-    # 添加年份列
+
+    # add year column
     year_comparisons$mean_estimates$year <- year
     year_comparisons$proportion_estimates$year <- year
     
-    # 合并结果
+    # integrate results
     all_years_mean <- rbind(all_years_mean, year_comparisons$mean_estimates)
     all_years_prop <- rbind(all_years_prop, year_comparisons$proportion_estimates)
   }
@@ -593,17 +620,17 @@ compare_yearly_performance <- function(yearly_results) {
 
 
 ############################################################################# Function 4.1
-# 创建多年比较的可视化函数
+# Visualize performance across multiple years
 plot_yearly_performance <- function(yearly_results) {
   library(ggplot2)
   library(tidyr)
   library(dplyr)
   library(gridExtra)
   
-  # 获取多年比较数据
+  # get comparisons across years
   comparisons <- compare_yearly_performance(yearly_results)
   print(names(comparisons$mean_estimates))
-  # 处理数据为绘图格式
+  # transform into graph data
   mean_plot_data <- comparisons$mean_estimates %>%
     select(year, strata_var, method, estimate, ci_lower, ci_upper) %>%
     mutate(
@@ -618,10 +645,10 @@ plot_yearly_performance <- function(yearly_results) {
       estimate_type = "Proportion Above Threshold"
     )
   
-  # 合并数据
+  # integrate plot data
   plot_data <- rbind(mean_plot_data, prop_plot_data)
   
-  # 为每个estimate_type获取真实值
+  # get true value for each estimate
   true_values <- sapply(names(yearly_results), function(year) {
     c(yearly_results[[year]]$true_values$mean,
       yearly_results[[year]]$true_values$proportion)
@@ -633,22 +660,23 @@ plot_yearly_performance <- function(yearly_results) {
     true_value = c(true_values)
   )
   
-  # 创建可视化
+  # main grapg
   ggplot(plot_data, aes(x = method, y = estimate, color = strata_var)) +
-    # 添加置信区间
+    # add CI
     geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), 
                  width = 0.2, 
                  position = position_dodge(width = 0.8)) +
-    # 添加点估计
+    # add estimate
     geom_point(position = position_dodge(width = 0.8), size = 2) +
-    # 添加真实值参考线
+    # add inference for true value
     geom_hline(data = true_value_df, 
                aes(yintercept = true_value),
                linetype = "dashed",
                color = "red") +
-    # 分面
+
+    # splpit large plot into small ones
     facet_grid(estimate_type ~ year, scales = "free_y") +
-    # 主题设置
+    # set theme
     theme_minimal() +
     theme(
       axis.text.x = element_text(size = 10),
@@ -657,7 +685,8 @@ plot_yearly_performance <- function(yearly_results) {
       legend.text = element_text(size = 8),
       strip.text = element_text(size = 12)
     ) +
-    # 标签
+
+    # set labels
     labs(
       x = "Estimation Method",
       y = "Estimate with 95% CI",
@@ -667,6 +696,116 @@ plot_yearly_performance <- function(yearly_results) {
     )
 }
 
+
+############################################################################# Function 4.2
+# Create performance metrics summary table using kable package
+create_performance_table <- function(yearly_results) {
+  library(knitr)
+  library(kableExtra)
+  library(dplyr)
+  
+  # Initialize empty data frame for storing results
+  performance_summary <- data.frame()
+  
+  # Process each year's results
+  for(year in names(yearly_results)) {
+    # Get performance metrics for current year
+    perf <- yearly_results[[year]]$performance
+    true_values <- yearly_results[[year]]$true_values
+    
+    # Process each stratification variable
+    for(strata_var in names(perf)) {
+      # Mean estimation methods
+      for(method in c("srs_vanilla", "srs_ratio", "str_prop")) {
+        mean_metrics <- perf[[strata_var]]$mean_estimates[[method]]
+        
+        # Create row for mean estimation
+        mean_row <- data.frame(
+          Year = year,
+          Target = "Mean Income",
+          Method = case_when(
+            method == "srs_vanilla" ~ "Simple Random Sampling",
+            method == "srs_ratio" ~ "Ratio Estimation",
+            method == "str_prop" ~ paste("Stratified by", strata_var)
+          ),
+          Avg_Bias = mean_metrics$bias,
+          Avg_SE = mean_metrics$avg_ci_width/(2*1.96),
+          RMSE = mean_metrics$rmse,
+          Coverage_Rate = mean_metrics$coverage,
+          Relative_Efficiency = mean_metrics$rmse / 
+            perf[[strata_var]]$mean_estimates$srs_vanilla$rmse
+        )
+        # Only add if this combination doesn't exist yet
+        if(!any(duplicated(rbind(performance_summary, mean_row)))) {
+          performance_summary <- rbind(performance_summary, mean_row)
+        }
+      }
+      
+      # Proportion estimation methods
+      for(method in c("srs_vanilla", "str_prop")) {
+        prop_metrics <- perf[[strata_var]]$prop_estimates[[method]]
+        
+        # Create row for proportion estimation
+        prop_row <- data.frame(
+          Year = year,
+          Target = "Proportion Above Threshold",
+          Method = case_when(
+            method == "srs_vanilla" ~ "Simple Random Sampling",
+            method == "str_prop" ~ paste("Stratified by", strata_var)
+          ),
+          Avg_Bias = prop_metrics$bias,
+          Avg_SE = prop_metrics$avg_ci_width/(2*1.96),
+          RMSE = prop_metrics$rmse,
+          Coverage_Rate = prop_metrics$coverage,
+          Relative_Efficiency = prop_metrics$rmse / 
+            perf[[strata_var]]$prop_estimates$srs_vanilla$rmse
+        )
+        # Only add if this combination doesn't exist yet
+        if(!any(duplicated(rbind(performance_summary, prop_row)))) {
+          performance_summary <- rbind(performance_summary, prop_row)
+        }
+      }
+    }
+  }
+  
+  # Format the data
+  performance_summary <- performance_summary %>%
+    # Group by different targets
+    group_by(Target) %>%
+    mutate(
+      # Process Mean Income and Proportion separately
+      across(c(Avg_Bias, Avg_SE, RMSE), 
+            ~case_when(
+              Target == "Mean Income" ~ sprintf("%.0f", round(., 0)),  # Show integers only
+              Target == "Proportion Above Threshold" ~ sprintf("%.4f", round(., 4))  # Show 4 decimal places
+            )),
+      # Format Relative Efficiency to 3 decimal places
+      Relative_Efficiency = sprintf("%.3f", round(Relative_Efficiency, 3)),
+      # Format Coverage Rate as percentage
+      Coverage_Rate = sprintf("%.1f%%", Coverage_Rate * 100)
+    ) %>%
+    ungroup() %>%
+    # Sort the data
+    arrange(Year, Target, Method, .by_group = TRUE)
+  
+  # Create kable table with hierarchical structure
+  kable(performance_summary, 
+        format = "html",
+        align = rep('c', ncol(performance_summary)),  # Center align all columns
+        caption = "<b>Sampling Methods Performance Comparison</b>") %>%
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "bordered"),
+                  full_width = FALSE,
+                  position = "left",
+                  font_size = 12) %>%
+    add_header_above(c(" " = 3,
+                      "Performance Metrics" = 5)) %>%
+    collapse_rows(columns = 1:2,  # Merge duplicate values in Year and Target columns
+                 valign = "middle") %>%  # Vertical center alignment
+    row_spec(0, bold = TRUE) %>%  # Bold header
+    footnote(general = "Note: Relative Efficiency is calculated relative to Simple Random Sampling",
+            general_title = "",
+            footnote_as_chunk = TRUE) 
+}
 
 
 ####################################################################################
