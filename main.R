@@ -14,9 +14,6 @@ library(ipumsr)
 
 
 
-
-
-
 ####################################################################################
 #——————————————————————————————Research Description————————————————————————————————#
 ####################################################################################
@@ -345,3 +342,4 @@ write.csv(yearly_comparisons$mean_estimates,
 write.csv(yearly_comparisons$proportion_estimates,
           "./results/proportion_estimation_results.csv",
           row.names = FALSE)
+

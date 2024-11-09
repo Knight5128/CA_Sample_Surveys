@@ -255,6 +255,7 @@ str_prop_sampling_est_prop_vanilla <- function(data, tarv, thres, n, strata_var)
     }
   }
 
+
   # Calculate proportion estimate for each stratum
   tarv.bar.hs <- tapply(STR.sample[[tarv]], STR.sample[[strata_var]], 
                         calculate_proportion, threshold = thres)
@@ -665,6 +666,7 @@ plot_yearly_performance <- function(yearly_results) {
       subtitle = "Red dashed lines indicate true population values"
     )
 }
+
 
 
 ####################################################################################
