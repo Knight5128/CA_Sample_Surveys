@@ -15,7 +15,7 @@ output:
 
 
 ```{r packages, include=FALSE}
-library(ggplot2)
+
 ```
 
 
