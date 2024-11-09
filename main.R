@@ -13,6 +13,13 @@ library(ipumsr)
 # 删除这个模块！！！！！！！！！！！！！
 
 
+################ 未完待续:
+# 确认income.thres以及n后，进行一次大型模拟，保存好big_result！！！！！！！
+# 画出第一张图
+# 修改第二张表格图中的Method名
+# 看如何将这两张图直接加入到报告中
+
+
 
 
 
@@ -303,6 +310,11 @@ for(year in years) {
 }
 
 
+####################################################################################
+#—————————————————————————————Result Visualization—————————————————————————————————#
+####################################################################################
+
+
 # Visualize estimation results across years
 yearly_plots <- plot_yearly_performance(big_results)
 
@@ -345,3 +357,27 @@ write.csv(yearly_comparisons$mean_estimates,
 write.csv(yearly_comparisons$proportion_estimates,
           "./results/proportion_estimation_results.csv",
           row.names = FALSE)
+
+
+####################################################################################
+#————————————————————————————Performance Comparison————————————————————————————————#
+####################################################################################
+
+# Here, we will look at the boarder picture of the performance metrics of 
+# different estimation methods throughout the whole simulation process in all 3 years
+# Including:
+#   1. Average Bias
+#      (Avg. difference between the estimate and the true population parameter)
+#   2. Average SE
+#      (Avg. standard errors of the estimates)
+#   2. RMSE
+#      (Rooted Mean Squared Error of estimate compared to the true population parameter)
+#   3. Coverage Rate
+#      (Proportion of CIs that contain the true population parameter)
+#   5. **Relative Efficiency**
+#      (Ratio of the variance of the RMSE to the RMSE of the SRS estimator)
+
+perf_table = create_performance_table(big_results)
+perf_table
+
+# And we can see that... (see main report for further explanation)
