@@ -2,14 +2,33 @@ library(dplyr)
 library(stats)
 library(ggplot2)
 
+
 ####################################################################################
-#——————————————————————————————————————Basic——————————————————————————————————————#
+#———————————————————————————————File Description———————————————————————————————————#
 ####################################################################################
 
+# This is a file containing necessary code snippets & sampling functions & simulation functions for the project
+# The functions are designed to be used in the main.R file under the same directory
+# The file is structured as follows:
+# 1. Snippet functions
+# 2. Sampling functions
+# 3. Simulation functions
+# 4. Visualization functions
+# 5. Other sampling functions
+
+####################################################################################
+#——————————————————————————————————————Basic———————————————————————————————————————#
+####################################################################################
+
+
+############################################################################# Function 1.1
+# Calculate proportion of a variable above a threshold
 calculate_proportion <- function(x, threshold) {
   mean(x > threshold)
 }
 
+############################################################################# Function 1.2
+# Calculate variance of a binary variable
 calculate_proportion_var <- function(x, threshold) {
   p <- mean(x > threshold)
   var <- p * (1 - p)
@@ -21,7 +40,7 @@ calculate_proportion_var <- function(x, threshold) {
 ####################################################################################
 
 
-##############################################################################
+############################################################################# Function 2.1
 # Simple Random Sampling —— estimating mean —— vanilla estimatior
 srs_sampling_est_mean_vanilla <- function(data, tarv, n) {
   # Input validation
@@ -56,7 +75,8 @@ srs_sampling_est_mean_vanilla <- function(data, tarv, n) {
   ))
 }
 
-##############################################################################
+
+############################################################################# Function 2.2
 # Simple Random Sampling —— estimating proportion —— vanilla estimator
 srs_sampling_est_prop_vanilla <- function(data, tarv, thres, n) {
   # Input validation
@@ -92,7 +112,7 @@ srs_sampling_est_prop_vanilla <- function(data, tarv, thres, n) {
 }
 
 
-##############################################################################
+############################################################################# Function 2.3
 # Simple Random Sampling —— estimating mean —— ratio estimator
 srs_sampling_est_mean_ratio <- function(data, tarv_1, aux_var, n) {
   # Input validation
@@ -121,7 +141,7 @@ srs_sampling_est_mean_ratio <- function(data, tarv_1, aux_var, n) {
   var_d <- var(d)
   
   # Standard error
-  tarv_1.se <- sqrt((1 - n/N) * var_d/(n * X_bar^2))
+  tarv_1.se <- sqrt((1 - n/N) * var_d/n)
   
   # Create confidence interval
   tarv_1.CI <- c(tarv_1.est - 1.96 * tarv_1.se,
@@ -136,7 +156,7 @@ srs_sampling_est_mean_ratio <- function(data, tarv_1, aux_var, n) {
 }
 
 
-##############################################################################
+############################################################################# Function 2.4
 # Stratified Sampling with Proportional Allocation —— estimating mean —— vanilla estimator
 str_prop_sampling_est_mean_vanilla <- function(data, tarv, n, strata_var) {
   # Input validation
@@ -198,7 +218,7 @@ str_prop_sampling_est_mean_vanilla <- function(data, tarv, n, strata_var) {
 }
 
 
-##############################################################################
+############################################################################# Function 2.5
 # Stratified Sampling with Proportional Allocation —— estimating proportion —— vanilla estimator
 str_prop_sampling_est_prop_vanilla <- function(data, tarv, thres, n, strata_var) {
   # Input validation
@@ -235,6 +255,7 @@ str_prop_sampling_est_prop_vanilla <- function(data, tarv, thres, n, strata_var)
     }
   }
 
+
   # Calculate proportion estimate for each stratum
   tarv.bar.hs <- tapply(STR.sample[[tarv]], STR.sample[[strata_var]], 
                         calculate_proportion, threshold = thres)
@@ -267,172 +288,301 @@ str_prop_sampling_est_prop_vanilla <- function(data, tarv, thres, n, strata_var)
 ####################################################################################
 
 
-##############################################################################
-##############################################################################
-# Simulation function for comparing **mean** estimation methods
-compare_mean_estimation_methods <- function(data, tarv, aux_var, n, strata_var, 
-                                         n_simulations = 1000) {
-  # Calculate true population parameter
-  true_mean <- mean(data[[tarv]])
+############################################################################# Function 3.1
+# Simulating different sampling & estimation methods
+# + evaluating performance across different sampling methods & strata variables used
+compare_sampling_methods <- function(data, tarv_1, tarv_2, thres, n, strata_vars, n_simulations = 1000) {
+  # 加载progress包
+  if (!require("progress")) {
+    install.packages("progress")
+    library(progress)
+  }
   
-  # Initialize storage for results
-  results <- list(
-    srs_vanilla = data.frame(
-      estimate = numeric(n_simulations),
-      se = numeric(n_simulations),
-      ci_lower = numeric(n_simulations),
-      ci_upper = numeric(n_simulations)
-    ),
-    srs_ratio = data.frame(
-      estimate = numeric(n_simulations),
-      se = numeric(n_simulations),
-      ci_lower = numeric(n_simulations),
-      ci_upper = numeric(n_simulations)
-    ),
-    str_prop = data.frame(
-      estimate = numeric(n_simulations),
-      se = numeric(n_simulations),
-      ci_lower = numeric(n_simulations),
-      ci_upper = numeric(n_simulations)
+  # 计算总体参数真值
+  true_mean <- mean(data[[tarv_1]])
+  true_prop <- mean(data[[tarv_2]] > thres)
+  
+  # 为每个分层变量初始化结果存储
+  results <- list()
+  for(strata_var in strata_vars) {
+    results[[strata_var]] <- list(
+      # 目标变量1: 均值估计结果
+      mean_estimates = list(
+        srs_vanilla = data.frame(
+          estimate = numeric(n_simulations),
+          se = numeric(n_simulations),
+          ci_lower = numeric(n_simulations),
+          ci_upper = numeric(n_simulations)
+        ),
+        srs_ratio = data.frame(
+          estimate = numeric(n_simulations),
+          se = numeric(n_simulations),
+          ci_lower = numeric(n_simulations),
+          ci_upper = numeric(n_simulations)
+        ),
+        str_prop = data.frame(
+          estimate = numeric(n_simulations),
+          se = numeric(n_simulations),
+          ci_lower = numeric(n_simulations),
+          ci_upper = numeric(n_simulations)
+        )
+      ),
+      # 目标变量2: 比例估计结果
+      prop_estimates = list(
+        srs_vanilla = data.frame(
+          estimate = numeric(n_simulations),
+          se = numeric(n_simulations),
+          ci_lower = numeric(n_simulations),
+          ci_upper = numeric(n_simulations)
+        ),
+        str_prop = data.frame(
+          estimate = numeric(n_simulations),
+          se = numeric(n_simulations),
+          ci_lower = numeric(n_simulations),
+          ci_upper = numeric(n_simulations)
+        )
+      )
     )
+  }
+  
+  # 创建进度条
+  pb <- progress_bar$new(
+    format = paste0("Year ", year, " - Simulation progress [:bar] :percent eta: :eta"),
+    total = n_simulations,
+    clear = FALSE,
+    width = 80
   )
   
-  # Run simulations
+  # 运行模拟
   for(i in 1:n_simulations) {
-    # Simple Random Sampling - Vanilla
-    srs_vanilla <- srs_sampling_est_mean_vanilla(data, tarv, n)
+    # SRS方法只需要运行一次（与分层变量无关）
+    srs_vanilla_mean <- srs_sampling_est_mean_vanilla(data, tarv_1, n)
+    srs_ratio_mean <- srs_sampling_est_mean_ratio(data, tarv_1, "UHRSWORK", n)
+    srs_vanilla_prop <- srs_sampling_est_prop_vanilla(data, tarv_2, thres, n)
     
-    # Simple Random Sampling - Ratio
-    srs_ratio <- srs_sampling_est_mean_ratio(data, tarv, aux_var, n)
+    # 对每个分层变量进行分层抽样
+    for(strata_var in strata_vars) {
+      # 分层抽样估计
+      str_prop_mean <- str_prop_sampling_est_mean_vanilla(data, tarv_1, n, strata_var)
+      str_prop_prop <- str_prop_sampling_est_prop_vanilla(data, tarv_2, thres, n, strata_var)
+      
+      # 存储均值估计结果
+      results[[strata_var]]$mean_estimates$srs_vanilla[i,] <- c(
+        srs_vanilla_mean$estimate,
+        srs_vanilla_mean$se,
+        srs_vanilla_mean$ci
+      )
+      
+      results[[strata_var]]$mean_estimates$srs_ratio[i,] <- c(
+        srs_ratio_mean$estimate,
+        srs_ratio_mean$se,
+        srs_ratio_mean$ci
+      )
+      
+      results[[strata_var]]$mean_estimates$str_prop[i,] <- c(
+        str_prop_mean$estimate,
+        str_prop_mean$se,
+        str_prop_mean$ci
+      )
+      
+      # 存储比例估计结果
+      results[[strata_var]]$prop_estimates$srs_vanilla[i,] <- c(
+        srs_vanilla_prop$estimate,
+        srs_vanilla_prop$se,
+        srs_vanilla_prop$ci
+      )
+      
+      results[[strata_var]]$prop_estimates$str_prop[i,] <- c(
+        str_prop_prop$estimate,
+        str_prop_prop$se,
+        str_prop_prop$ci
+      )
+    }
     
-    # Stratified Sampling - Proportional
-    str_prop <- str_prop_sampling_est_mean_vanilla(data, tarv, n, strata_var)
-    
-    # Store results
-    results$srs_vanilla[i,] <- c(
-      srs_vanilla$estimate,
-      srs_vanilla$se,
-      srs_vanilla$ci
-    )
-    
-    results$srs_ratio[i,] <- c(
-      srs_ratio$estimate,
-      srs_ratio$se,
-      srs_ratio$ci
-    )
-    
-    results$str_prop[i,] <- c(
-      str_prop$estimate,
-      str_prop$se,
-      str_prop$ci
-    )
+    # 更新进度条
+    pb$tick()
   }
   
-  # Calculate performance metrics
+  # 计算每个分层变量的性能指标
   performance <- list()
-  methods <- c("srs_vanilla", "srs_ratio", "str_prop")
-  
-  for(method in methods) {
-    performance[[method]] <- list(
-      # Bias
-      bias = mean(results[[method]]$estimate - true_mean),
-      # Root Mean Square Error
-      rmse = sqrt(mean((results[[method]]$estimate - true_mean)^2)),
-      # Coverage probability
-      coverage = mean(results[[method]]$ci_lower <= true_mean & 
-                     results[[method]]$ci_upper >= true_mean),
-      # Average width of confidence intervals
-      ci_width = mean(results[[method]]$ci_upper - results[[method]]$ci_lower)
+  for(strata_var in strata_vars) {
+    performance[[strata_var]] <- list(
+      mean_estimates = list(),
+      prop_estimates = list()
     )
+    
+    # 均值估计的性能指标
+    for(method in c("srs_vanilla", "srs_ratio", "str_prop")) {
+      performance[[strata_var]]$mean_estimates[[method]] <- list(
+        estimates = results[[strata_var]]$mean_estimates[[method]]$estimate,
+        ci_lower = results[[strata_var]]$mean_estimates[[method]]$ci_lower,
+        ci_upper = results[[strata_var]]$mean_estimates[[method]]$ci_upper,
+        bias = mean(results[[strata_var]]$mean_estimates[[method]]$estimate - true_mean),
+        rmse = sqrt(mean((results[[strata_var]]$mean_estimates[[method]]$estimate - true_mean)^2)),
+        coverage = mean(results[[strata_var]]$mean_estimates[[method]]$ci_lower <= true_mean & 
+                       results[[strata_var]]$mean_estimates[[method]]$ci_upper >= true_mean),
+        avg_ci_width = mean(results[[strata_var]]$mean_estimates[[method]]$ci_upper - 
+                           results[[strata_var]]$mean_estimates[[method]]$ci_lower)
+      )
+    }
+    
+    # 比例估计的性能指标
+    for(method in c("srs_vanilla", "str_prop")) {
+      performance[[strata_var]]$prop_estimates[[method]] <- list(
+        estimates = results[[strata_var]]$prop_estimates[[method]]$estimate,
+        ci_lower = results[[strata_var]]$prop_estimates[[method]]$ci_lower,
+        ci_upper = results[[strata_var]]$prop_estimates[[method]]$ci_upper,
+        bias = mean(results[[strata_var]]$prop_estimates[[method]]$estimate - true_prop),
+        rmse = sqrt(mean((results[[strata_var]]$prop_estimates[[method]]$estimate - true_prop)^2)),
+        coverage = mean(results[[strata_var]]$prop_estimates[[method]]$ci_lower <= true_prop & 
+                       results[[strata_var]]$prop_estimates[[method]]$ci_upper >= true_prop),
+        avg_ci_width = mean(results[[strata_var]]$prop_estimates[[method]]$ci_upper - 
+                           results[[strata_var]]$prop_estimates[[method]]$ci_lower)
+      )
+    }
   }
   
-  # Add true value and simulation results to output
-  results$true_value <- true_mean
-  results$performance <- performance
-  
-  # Create summary visualizations
-  plots <- plot_mean_simulation_results(results)
-  results$plots <- plots
-  
-  return(results)
+  # 返回结果
+  return(list(
+    true_values = list(
+      mean = true_mean,
+      proportion = true_prop
+    ),
+    simulation_results = results,
+    performance = performance
+  ))
 }
 
 
-##############################################################################
-##############################################################################
-# Simulation function for comparing **proportion** estimation methods
-compare_prop_estimation_methods <- function(data, tarv, thres, n, strata_var, 
-                                         n_simulations = 1000) {
-  # Calculate true population parameter
-  true_prop <- mean(data[[tarv]] > thres)
+############################################################################# Function 3.2
+# 构建分层变量性能比较表格
+compare_strata_performance <- function(performance_results) {
+  # 初始化结果数据框
+  mean_comparisons <- data.frame()
+  prop_comparisons <- data.frame()
   
-  # Initialize storage for results
-  results <- list(
-    srs_vanilla = data.frame(
-      estimate = numeric(n_simulations),
-      se = numeric(n_simulations),
-      ci_lower = numeric(n_simulations),
-      ci_upper = numeric(n_simulations)
-    ),
-    str_prop = data.frame(
-      estimate = numeric(n_simulations),
-      se = numeric(n_simulations),
-      ci_lower = numeric(n_simulations),
-      ci_upper = numeric(n_simulations)
+  # 遍历每个分层变量
+  for(strata_var in names(performance_results)) {
+    # 均值估计比较
+    mean_perf <- data.frame(
+      strata_var = strata_var,
+      method = c("SRS-Vanilla", "SRS-Ratio", "Stratified"),
+      # 使用均值而不是原始向量
+      estimate = c(
+        mean(performance_results[[strata_var]]$mean_estimates$srs_vanilla$estimates),
+        mean(performance_results[[strata_var]]$mean_estimates$srs_ratio$estimates),
+        mean(performance_results[[strata_var]]$mean_estimates$str_prop$estimates)
+      ),
+      ci_lower = c(
+        mean(performance_results[[strata_var]]$mean_estimates$srs_vanilla$ci_lower),
+        mean(performance_results[[strata_var]]$mean_estimates$srs_ratio$ci_lower),
+        mean(performance_results[[strata_var]]$mean_estimates$str_prop$ci_lower)
+      ),
+      ci_upper = c(
+        mean(performance_results[[strata_var]]$mean_estimates$srs_vanilla$ci_upper),
+        mean(performance_results[[strata_var]]$mean_estimates$srs_ratio$ci_upper),
+        mean(performance_results[[strata_var]]$mean_estimates$str_prop$ci_upper)
+      ),
+      bias = c(
+        performance_results[[strata_var]]$mean_estimates$srs_vanilla$bias,
+        performance_results[[strata_var]]$mean_estimates$srs_ratio$bias,
+        performance_results[[strata_var]]$mean_estimates$str_prop$bias
+      ),
+      rmse = c(
+        performance_results[[strata_var]]$mean_estimates$srs_vanilla$rmse,
+        performance_results[[strata_var]]$mean_estimates$srs_ratio$rmse,
+        performance_results[[strata_var]]$mean_estimates$str_prop$rmse
+      ),
+      coverage = c(
+        performance_results[[strata_var]]$mean_estimates$srs_vanilla$coverage,
+        performance_results[[strata_var]]$mean_estimates$srs_ratio$coverage,
+        performance_results[[strata_var]]$mean_estimates$str_prop$coverage
+      ),
+      ci_width = c(
+        performance_results[[strata_var]]$mean_estimates$srs_vanilla$avg_ci_width,
+        performance_results[[strata_var]]$mean_estimates$srs_ratio$avg_ci_width,
+        performance_results[[strata_var]]$mean_estimates$str_prop$avg_ci_width
+      )
     )
-  )
-  
-  # Run simulations
-  for(i in 1:n_simulations) {
-    # Simple Random Sampling - Vanilla
-    srs_vanilla <- srs_sampling_est_prop_vanilla(data, tarv, thres, n)
+    mean_comparisons <- rbind(mean_comparisons, mean_perf)
     
-    # Stratified Sampling - Proportional
-    str_prop <- str_prop_sampling_est_prop_vanilla(data, tarv, thres, n, strata_var)
-    
-    # Store results
-    results$srs_vanilla[i,] <- c(
-      srs_vanilla$estimate,
-      srs_vanilla$se,
-      srs_vanilla$ci
+    # 比例估计比较
+    prop_perf <- data.frame(
+      strata_var = strata_var,
+      method = c("SRS-Vanilla", "Stratified"),
+      # 使用均值而不是原始向量
+      estimate = c(
+        mean(performance_results[[strata_var]]$prop_estimates$srs_vanilla$estimates),
+        mean(performance_results[[strata_var]]$prop_estimates$str_prop$estimates)
+      ),
+      ci_lower = c(
+        mean(performance_results[[strata_var]]$prop_estimates$srs_vanilla$ci_lower),
+        mean(performance_results[[strata_var]]$prop_estimates$str_prop$ci_lower)
+      ),
+      ci_upper = c(
+        mean(performance_results[[strata_var]]$prop_estimates$srs_vanilla$ci_upper),
+        mean(performance_results[[strata_var]]$prop_estimates$str_prop$ci_upper)
+      ),
+      bias = c(
+        performance_results[[strata_var]]$prop_estimates$srs_vanilla$bias,
+        performance_results[[strata_var]]$prop_estimates$str_prop$bias
+      ),
+      rmse = c(
+        performance_results[[strata_var]]$prop_estimates$srs_vanilla$rmse,
+        performance_results[[strata_var]]$prop_estimates$str_prop$rmse
+      ),
+      coverage = c(
+        performance_results[[strata_var]]$prop_estimates$srs_vanilla$coverage,
+        performance_results[[strata_var]]$prop_estimates$str_prop$coverage
+      ),
+      ci_width = c(
+        performance_results[[strata_var]]$prop_estimates$srs_vanilla$avg_ci_width,
+        performance_results[[strata_var]]$prop_estimates$str_prop$avg_ci_width
+      )
     )
-    
-    results$str_prop[i,] <- c(
-      str_prop$estimate,
-      str_prop$se,
-      str_prop$ci
-    )
+    prop_comparisons <- rbind(prop_comparisons, prop_perf)
   }
   
-  # Calculate performance metrics
-  performance <- list()
-  methods <- c("srs_vanilla", "str_prop")
-  
-  for(method in methods) {
-    performance[[method]] <- list(
-      # Bias
-      bias = mean(results[[method]]$estimate - true_prop),
-      # Root Mean Square Error
-      rmse = sqrt(mean((results[[method]]$estimate - true_prop)^2)),
-      # Coverage probability
-      coverage = mean(results[[method]]$ci_lower <= true_prop & 
-                     results[[method]]$ci_upper >= true_prop),
-      # Average width of confidence intervals
-      ci_width = mean(results[[method]]$ci_upper - results[[method]]$ci_lower)
-    )
-  }
-  
-  # Add true value and simulation results to output
-  results$true_value <- true_prop
-  results$performance <- performance
-  
-  # Create summary visualizations
-  plots <- plot_prop_simulation_results(results)
-  results$plots <- plots
-  
-  return(results)
+  return(list(
+    mean_estimates = mean_comparisons,
+    proportion_estimates = prop_comparisons
+  ))
 }
 
+
+############################################################################# Function 3.3
+# 首先创建一个函数来整合多年的结果
+compare_yearly_performance <- function(yearly_results) {
+  # 初始化结果数据框
+  all_years_mean <- data.frame()
+  all_years_prop <- data.frame()
+  
+  # 遍历每一年
+  for(year in names(yearly_results)) {
+    # 获取当年的性能比较结果
+    year_comparisons <- compare_strata_performance(yearly_results[[year]]$performance)
+    
+    # 对于SRS-Vanilla和SRS-Ratio方法,只保留第一个分层变量的结果
+    year_comparisons$mean_estimates <- year_comparisons$mean_estimates %>%
+      filter((method != "SRS-Vanilla" & method != "SRS-Ratio") | strata_var == "STATEICP")
+    
+    year_comparisons$proportion_estimates <- year_comparisons$proportion_estimates %>%
+      filter((method != "SRS-Vanilla" & method != "SRS-Ratio") | strata_var == "STATEICP")
+    
+    # 添加年份列
+    year_comparisons$mean_estimates$year <- year
+    year_comparisons$proportion_estimates$year <- year
+    
+    # 合并结果
+    all_years_mean <- rbind(all_years_mean, year_comparisons$mean_estimates)
+    all_years_prop <- rbind(all_years_prop, year_comparisons$proportion_estimates)
+  }
+  
+  return(list(
+    mean_estimates = all_years_mean,
+    proportion_estimates = all_years_prop
+  ))
+}
 
 
 
@@ -442,146 +592,80 @@ compare_prop_estimation_methods <- function(data, tarv, thres, n, strata_var,
 ####################################################################################
 
 
-##############################################################################
-##############################################################################
-# Helper function to plot **mean** simulation results
-plot_mean_simulation_results <- function(results) {
-  # Prepare data for plotting
-  methods <- c("SRS-Vanilla", "SRS-Ratio", "Stratified-Proportional")
+############################################################################# Function 4.1
+# 创建多年比较的可视化函数
+plot_yearly_performance <- function(yearly_results) {
+  library(ggplot2)
+  library(tidyr)
+  library(dplyr)
+  library(gridExtra)
   
-  # Combine all estimates into one dataframe for density plot
-  estimates_df <- data.frame(
-    estimate = c(results$srs_vanilla$estimate,
-                results$srs_ratio$estimate,
-                results$str_prop$estimate),
-    method = rep(methods, each = nrow(results$srs_vanilla))
+  # 获取多年比较数据
+  comparisons <- compare_yearly_performance(yearly_results)
+  print(names(comparisons$mean_estimates))
+  # 处理数据为绘图格式
+  mean_plot_data <- comparisons$mean_estimates %>%
+    select(year, strata_var, method, estimate, ci_lower, ci_upper) %>%
+    mutate(
+      year = factor(year),
+      estimate_type = "Mean Income"
+    )
+  
+  prop_plot_data <- comparisons$proportion_estimates %>%
+    select(year, strata_var, method, estimate, ci_lower, ci_upper) %>%
+    mutate(
+      year = factor(year),
+      estimate_type = "Proportion Above Threshold"
+    )
+  
+  # 合并数据
+  plot_data <- rbind(mean_plot_data, prop_plot_data)
+  
+  # 为每个estimate_type获取真实值
+  true_values <- sapply(names(yearly_results), function(year) {
+    c(yearly_results[[year]]$true_values$mean,
+      yearly_results[[year]]$true_values$proportion)
+  })
+  
+  true_value_df <- data.frame(
+    year = rep(names(yearly_results), each = 2),
+    estimate_type = rep(c("Mean Income", "Proportion Above Threshold"), length(yearly_results)),
+    true_value = c(true_values)
   )
   
-  # Create density plot
-  p1 <- ggplot(estimates_df, aes(x = estimate, fill = method)) +
-    geom_density(alpha = 0.5) +
-    geom_vline(xintercept = results$true_value, linetype = "dashed", color = "red") +
-    labs(title = "Distribution of Estimates",
-         x = "Estimate",
-         y = "Density") +
-    theme_minimal()
-  
-  # Prepare performance metrics for bar plots
-  performance_df <- data.frame(
-    method = methods,
-    bias = c(results$performance$srs_vanilla$bias,
-             results$performance$srs_ratio$bias,
-             results$performance$str_prop$bias),
-    rmse = c(results$performance$srs_vanilla$rmse,
-             results$performance$srs_ratio$rmse,
-             results$performance$str_prop$rmse),
-    coverage = c(results$performance$srs_vanilla$coverage,
-                results$performance$srs_ratio$coverage,
-                results$performance$str_prop$coverage),
-    ci_width = c(results$performance$srs_vanilla$ci_width,
-                 results$performance$srs_ratio$ci_width,
-                 results$performance$str_prop$ci_width)
-  )
-  
-  # Create RMSE plot
-  p2 <- ggplot(performance_df, aes(x = method, y = rmse, fill = method)) +
-    geom_bar(stat = "identity") +
-    labs(title = "Root Mean Square Error",
-         x = "Method",
-         y = "RMSE") +
+  # 创建可视化
+  ggplot(plot_data, aes(x = method, y = estimate, color = strata_var)) +
+    # 添加置信区间
+    geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), 
+                 width = 0.2, 
+                 position = position_dodge(width = 0.8)) +
+    # 添加点估计
+    geom_point(position = position_dodge(width = 0.8), size = 2) +
+    # 添加真实值参考线
+    geom_hline(data = true_value_df, 
+               aes(yintercept = true_value),
+               linetype = "dashed",
+               color = "red") +
+    # 分面
+    facet_grid(estimate_type ~ year, scales = "free_y") +
+    # 主题设置
     theme_minimal() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
-  
-  # Create coverage probability plot
-  p3 <- ggplot(performance_df, aes(x = method, y = coverage, fill = method)) +
-    geom_bar(stat = "identity") +
-    geom_hline(yintercept = 0.95, linetype = "dashed", color = "red") +
-    labs(title = "95% CI Coverage Probability",
-         x = "Method",
-         y = "Coverage Probability") +
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
-  
-  return(list(
-    density_plot = p1,
-    rmse_plot = p2,
-    coverage_plot = p3
-  ))
+    theme(
+      axis.text.x = element_text(size = 10),
+      legend.position = "bottom",
+      legend.title = element_text(size = 10),
+      legend.text = element_text(size = 8),
+      strip.text = element_text(size = 12)
+    ) +
+    # 标签
+    labs(
+      x = "Estimation Method",
+      y = "Estimate with 95% CI",
+      color = "Stratification Variable",
+      title = "Comparison of Different Estimation Methods Across 2016, 2020, 2022",
+      subtitle = "Red dashed lines indicate true population values"
+    )
 }
-
-
-##############################################################################
-############################################################################
-# Helper function to plot **proportion** simulation results
-plot_prop_simulation_results <- function(results) {
-  # Prepare data for plotting
-  methods <- c("SRS-Vanilla", "Stratified-Proportional")
-  
-  # Combine all estimates into one dataframe for density plot
-  estimates_df <- data.frame(
-    estimate = c(results$srs_vanilla$estimate,
-                results$str_prop$estimate),
-    method = rep(methods, each = nrow(results$srs_vanilla))
-  )
-  
-  # Create density plot
-  p1 <- ggplot(estimates_df, aes(x = estimate, fill = method)) +
-    geom_density(alpha = 0.5) +
-    geom_vline(xintercept = results$true_value, linetype = "dashed", color = "red") +
-    labs(title = "Distribution of Proportion Estimates",
-         x = "Estimate",
-         y = "Density") +
-    theme_minimal()
-  
-  # Prepare performance metrics for bar plots
-  performance_df <- data.frame(
-    method = methods,
-    bias = c(results$performance$srs_vanilla$bias,
-             results$performance$str_prop$bias),
-    rmse = c(results$performance$srs_vanilla$rmse,
-             results$performance$str_prop$rmse),
-    coverage = c(results$performance$srs_vanilla$coverage,
-                results$performance$str_prop$coverage),
-    ci_width = c(results$performance$srs_vanilla$ci_width,
-                 results$performance$str_prop$ci_width)
-  )
-  
-  # Create RMSE plot
-  p2 <- ggplot(performance_df, aes(x = method, y = rmse, fill = method)) +
-    geom_bar(stat = "identity") +
-    labs(title = "Root Mean Square Error",
-         x = "Method",
-         y = "RMSE") +
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
-  
-  # Create coverage probability plot
-  p3 <- ggplot(performance_df, aes(x = method, y = coverage, fill = method)) +
-    geom_bar(stat = "identity") +
-    geom_hline(yintercept = 0.95, linetype = "dashed", color = "red") +
-    labs(title = "95% CI Coverage Probability",
-         x = "Method",
-         y = "Coverage Probability") +
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
-  
-  # Create CI width plot
-  p4 <- ggplot(performance_df, aes(x = method, y = ci_width, fill = method)) +
-    geom_bar(stat = "identity") +
-    labs(title = "Average Confidence Interval Width",
-         x = "Method",
-         y = "CI Width") +
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
-  
-  return(list(
-    density_plot = p1,
-    rmse_plot = p2,
-    coverage_plot = p3,
-    ci_width_plot = p4
-  ))
-}
-
 
 
 
@@ -589,6 +673,8 @@ plot_prop_simulation_results <- function(results) {
 #————————————————————————————————Other Sampling————————————————————————————————————#
 ####################################################################################
 
+
+############################################################################# Function 5.1
 # Stratified Sampling with Equal Allocation
 str_equal_sampling <- function(data, tarv_1, tarv_2, thres, n, strata_var) {
   # Input validation
@@ -664,7 +750,7 @@ str_equal_sampling <- function(data, tarv_1, tarv_2, thres, n, strata_var) {
 }
 
 
-##############################################################################
+############################################################################# Function 5.2
 # Stratified Sampling with Optimal Allocation
 str_opt_sampling <- function(data, tarv_1, tarv_2, thres, n, strata_var, 
                            strata_s2_guess = NULL, strata_cost = NULL) {
