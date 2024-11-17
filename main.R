@@ -6,19 +6,6 @@ library(ggplot2)
 library(ipumsr)
 
 
-####################################################################################
-#—————————————————————————————Notes before submitting——————————————————————————————#
-####################################################################################
-# 将 所有中文注释 & 非指导、引导性的文字 翻译为英文
-# 删除这个模块！！！！！！！！！！！！！
-
-
-################ 未完待续:
-# 确认income.thres以及n后，进行一次大型模拟，保存好big_result！！！！！！！
-# 画出第一张图
-# 修改第二张表格图中的Method名
-# 看如何将这两张图直接加入到报告中
-
 
 ####################################################################################
 #——————————————————————————————Research Description————————————————————————————————#
@@ -42,9 +29,6 @@ library(ipumsr)
 #   6. INCEARN: total personal earned income
 #         INCEARN reports income earned from wages or a person's own business or farm for the previous year
 
-
-# 在相关性分析部分，发现INCEARN与每周工作小时数的相关性比较高，适合应用ratio estimation
-# 故初步考虑最关心INCEARN这一变量，THRESHOLD也要围绕他进行查找&说明！！！！！！
 
 
 ####################################################################################
@@ -95,21 +79,21 @@ df_2022 <- select_relevant_columns(rawdf_2022)
 explore_correlations <- function(df, title = "Finding Auxiliary Variable", save_plot = FALSE) {
   library(corrplot)
   
-  # 如果需要保存图片且results目录不存在，则创建该目录
+  # Create results directory if it doesn't exist
   if (save_plot && !dir.exists("./results")) {
     dir.create("./results")
   }
   
-  # 获取数值型列
+  # Get numeric columns
   numeric_cols <- sapply(df, is.numeric)
   numeric_data <- df[, numeric_cols]
   
-  # 计算相关矩阵
+  # Calculate correlation matrix
   cor_matrix <- cor(numeric_data, use = "complete.obs")
   
-  # 创建相关图
+  # Create correlation plot
   if (save_plot) {
-    # 保存到文件
+    # Save to file
     png(paste0("./results/", title, "_correlation_plot.png"), 
         width = 1200, height = 1200, res = 100)
     corrplot(cor_matrix, 
@@ -122,7 +106,7 @@ explore_correlations <- function(df, title = "Finding Auxiliary Variable", save_
              title = paste("Correlation Plot -", title))
     dev.off()
   } else {
-    # 在R界面显示
+    # Display in R interface
     corrplot(cor_matrix, 
              method = "color", 
              type = "upper", 
@@ -133,14 +117,14 @@ explore_correlations <- function(df, title = "Finding Auxiliary Variable", save_
              title = paste("Correlation Plot -", title))
   }
   
-  # 返回相关矩阵
+  # Return correlation matrix
   return(cor_matrix)
 }
 
 # To see whether there is a single variable that is highly correlated with a person's earned income
-explore_correlations(df_2016[,-c(1,2,3,4,5,6,8,12:17,20,23,25,27,29)], "2016 Data", save_plot = TRUE)
-explore_correlations(df_2020[,-c(1,2,3,4,5,6,8,12:17,20,23,25,27,29)], "2020 Data", save_plot = TRUE)
-explore_correlations(df_2022[,-c(1,2,3,4,5,6,8,12:17,20,23,25,27,29)], "2022 Data", save_plot = TRUE)
+explore_correlations(df_2016[,-c(1,2,3,4,5,6,7,8,12:17,20,23,25,27,29)], "2016_Data", save_plot = TRUE)
+explore_correlations(df_2020[,-c(1,2,3,4,5,6,7,8,12:17,20,23,25,27,29)], "2020_Data", save_plot = TRUE)
+explore_correlations(df_2022[,-c(1,2,3,4,5,6,7,8,12:17,20,23,25,27,29)], "2022_Data", save_plot = TRUE)
 # THen can find that "UHRSWORK" is highly correlated with "INCEARN" in all 3 years
 # So we can use "UHRSWORK" as the auxiliary variable for Ratio Estimation
 
@@ -219,23 +203,6 @@ explore_correlations(df_2022[,-c(1,2,3,4,5,6,8,12:17,20,23,25,27,29)], "2022 Dat
 
 
 ####################################################################################
-#———————————————————————————Determining Sample Size————————————————————————————————#
-####################################################################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-####################################################################################
 #—————————————————————————————Data Processing - 2nd Stage——————————————————————————#
 ####################################################################################
 
@@ -272,15 +239,15 @@ df_2022 <- add_age_groups(df_2022)
 set.seed(2024)
 
 # 2. Pre-determined parameters
-income.thres <- 50000  # threshold for INCEARN
-sample_size <- 10000   # total sample size for each simulation
+income.thres <- 30000  # threshold for INCEARN
+sample_size <- 8740   # total sample size for each simulation
 
 # 3. Set stratification variables and which years' data to analyse 
 strata_vars <- c("STATEICP", "SEX", "AGE_GROUP", "RACE")
 years <- c("2016", "2020", "2022")
 
 # 4. number of simulations
-n_sims <- 1000
+n_sims <- 500
 
 
 ####################################################################################
@@ -301,7 +268,7 @@ for(year in years) {
     thres = income.thres,
     n = sample_size,
     strata_vars = c("STATEICP", "SEX", "AGE_GROUP", "RACE"),
-    n_simulations = 3
+    n_simulations = n_sims
   )
 }
 
