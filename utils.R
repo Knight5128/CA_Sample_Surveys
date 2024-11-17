@@ -724,8 +724,8 @@ create_performance_table <- function(yearly_results) {
           Year = year,
           Target = "Mean Income",
           Method = case_when(
-            method == "srs_vanilla" ~ "Simple Random Sampling",
-            method == "srs_ratio" ~ "Ratio Estimation",
+            method == "srs_vanilla" ~ "SRS-Vanilla",
+            method == "srs_ratio" ~ "SRS-Ratio",
             method == "str_prop" ~ paste("Stratified by", strata_var)
           ),
           Avg_Bias = mean_metrics$bias,
@@ -750,7 +750,7 @@ create_performance_table <- function(yearly_results) {
           Year = year,
           Target = "Proportion Above Threshold",
           Method = case_when(
-            method == "srs_vanilla" ~ "Simple Random Sampling",
+            method == "srs_vanilla" ~ "SRS-Vanilla",
             method == "str_prop" ~ paste("Stratified by", strata_var)
           ),
           Avg_Bias = prop_metrics$bias,
